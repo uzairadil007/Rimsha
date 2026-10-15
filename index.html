@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UGC by Rimsha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fff4ec;--ink:#2a1a14;--coral:#ff6b4a;--pink:#ffc2d1;--butter:#ffe27a;--mint:#bdf0d6;--lilac:#d9c8ff;--mute:#7a6259}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif;line-height:1.6}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif;letter-spacing:-.03em}
+  nav{padding:20px 0}
+  nav .wrap{display:flex;justify-content:space-between;align-items:center}
+  .pillnav{display:flex;gap:6px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:6px}
+  .pillnav a{padding:8px 16px;border-radius:999px;font-weight:500;font-size:14px}
+  .pillnav a:hover{background:var(--butter)}
+  .logo{font-family:"Bricolage Grotesque";font-weight:800;font-size:24px}
+  .btn{display:inline-block;background:var(--coral);color:#fff;font-weight:700;padding:14px 26px;border-radius:999px;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);transition:transform .15s,box-shadow .15s}
+  .btn:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+  .btn.w{background:#fff;color:var(--ink)}
+  header{padding:60px 0 100px;text-align:center;position:relative}
+  .sticker{display:inline-block;background:var(--mint);border:2px solid var(--ink);border-radius:999px;padding:6px 16px;font-weight:700;font-size:14px;transform:rotate(-3deg);margin-bottom:26px}
+  h1{font-size:clamp(50px,9vw,120px);font-weight:800;line-height:.95}
+  h1 .hl{background:var(--pink);padding:0 .15em;border-radius:.2em;display:inline-block;transform:rotate(-2deg)}
+  h1 .hl2{background:var(--butter);padding:0 .15em;border-radius:.2em;display:inline-block;transform:rotate(1.5deg)}
+  .lead{font-size:20px;color:var(--mute);max-width:600px;margin:30px auto 38px}
+  .cta{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+  .float{position:absolute;font-size:44px;animation:bob 4s ease-in-out infinite}
+  .f1{top:80px;left:6%}.f2{top:220px;right:7%;animation-delay:1s}.f3{bottom:60px;left:14%;animation-delay:2s}
+  @keyframes bob{50%{transform:translateY(-14px) rotate(8deg)}}
+  section{padding:90px 0}
+  .kicker{display:inline-block;background:var(--ink);color:var(--bg);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;margin-bottom:20px}
+  h2{font-size:clamp(38px,5.5vw,68px);font-weight:800;line-height:1;margin-bottom:40px}
+  .about{display:grid;grid-template-columns:1fr 1.15fr;gap:48px;align-items:center}
+  .blob{aspect-ratio:1;background:var(--lilac);border:2px solid var(--ink);border-radius:46% 54% 42% 58%/55% 45% 55% 45%;display:grid;place-items:center;font-family:"Bricolage Grotesque";font-weight:800;font-size:110px;box-shadow:8px 8px 0 var(--ink)}
+  .about p{font-size:18px;color:var(--mute);margin-bottom:18px}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .chip{border:2px solid var(--ink);border-radius:999px;padding:8px 16px;font-weight:700;font-size:14px;background:#fff}
+  .chip b{color:var(--coral)}
+  .bento{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .b{border:2px solid var(--ink);border-radius:26px;padding:28px;box-shadow:5px 5px 0 var(--ink)}
+  .b h3{font-size:24px;font-weight:800;margin:14px 0 6px}
+  .b p{font-size:15px;color:#4d3a33}
+  .b .e{font-size:34px}
+  .b.big{grid-column:span 2}
+  .c1{background:var(--pink)}.c2{background:var(--butter)}.c3{background:var(--mint)}.c4{background:var(--lilac)}.c5{background:#fff}.c6{background:var(--coral);color:#fff}.c6 p{color:#ffe9e2}
+  .brands{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .brand{background:#fff;border:2px solid var(--ink);border-radius:26px;padding:30px;transition:transform .2s}
+  .brand:nth-child(1){transform:rotate(-1.5deg)}.brand:nth-child(3){transform:rotate(1.5deg)}
+  .brand:hover{transform:rotate(0) scale(1.03)}
+  .brand .av{width:56px;height:56px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-weight:800;font-family:"Bricolage Grotesque";font-size:20px;margin-bottom:18px}
+  .brand h3{font-size:26px;font-weight:800}
+  .brand .h{color:var(--coral);font-weight:700;font-size:14px}
+  .brand p{margin-top:12px;color:var(--mute);font-size:15px}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .st{background:#fff;border:2px dashed var(--ink);border-radius:22px;padding:26px;text-align:center}
+  .st .num{width:52px;height:52px;margin:0 auto 14px;border-radius:50%;background:var(--butter);border:2px solid var(--ink);display:grid;place-items:center;font-weight:800;font-family:"Bricolage Grotesque";font-size:22px}
+  .st h3{font-size:20px;font-weight:800;margin-bottom:6px}
+  .st p{font-size:14px;color:var(--mute)}
+  .contact{background:var(--coral);border:2px solid var(--ink);border-radius:36px;padding:70px 40px;text-align:center;color:#fff;box-shadow:10px 10px 0 var(--ink)}
+  .contact h2{margin-bottom:16px}
+  .contact p{font-size:19px;color:#ffe9e2;margin-bottom:34px}
+  .contact .btn{background:#fff;color:var(--ink)}
+  .socials{display:flex;justify-content:center;gap:10px;margin-top:30px;flex-wrap:wrap}
+  .socials a{background:var(--ink);color:#fff;padding:8px 16px;border-radius:999px;font-size:14px;font-weight:500}
+  footer{padding:40px 0;text-align:center;color:var(--mute);font-size:14px}
+  @media(max-width:880px){
+    .pillnav{display:none}
+    .about,.brands{grid-template-columns:1fr}
+    .bento,.steps{grid-template-columns:1fr 1fr}
+    .blob{max-width:320px;margin:0 auto}
+    .float{display:none}
+    .brand{transform:none!important}
+  }
+  @media(max-width:520px){.bento,.steps{grid-template-columns:1fr}.b.big{grid-column:span 1}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a href="#" class="logo">ugc by rimsha ✿</a>
+  <div class="pillnav"><a href="#about">About</a><a href="#make">What I make</a><a href="#brands">Brands</a><a href="#how">How</a></div>
+  <a href="#contact" class="btn">Say hi 👋</a>
+</div></nav>
+
+<header><div class="wrap">
+  <span class="float f1">📦</span><span class="float f2">🎬</span><span class="float f3">✨</span>
+  <span class="sticker">🇵🇰 UGC creator from Pakistan</span>
+  <h1>I make your brand<br><span class="hl">feel like</span> a <span class="hl2">friend's</span><br>recommendation.</h1>
+  <p class="lead">Hi, I'm Rimsha! I create fun, real, scroll-stopping content that makes people actually want what you sell.</p>
+  <div class="cta"><a href="#contact" class="btn">Let's collab</a><a href="#brands" class="btn w">See who I've worked with</a></div>
+</div></header>
+
+<section id="about"><div class="wrap about">
+  <div class="blob">R</div>
+  <div>
+    <span class="kicker">Who am I</span>
+    <h2>Part creator, part agency nerd.</h2>
+    <p>I'm Rimsha — I run Jugaar Media, a creative and influencer marketing agency, plus a fitness agency that manages coaches all over Pakistan.</p>
+    <p>So I know what brands need: content that looks effortless on camera but is planned to hit your goals behind the scenes.</p>
+    <div class="chips">
+      <span class="chip"><b>50+</b> coaches managed</span>
+      <span class="chip"><b>2</b> agencies</span>
+      <span class="chip">Islamabad · Karachi · Lahore</span>
+    </div>
+  </div>
+</div></section>
+
+<section id="make"><div class="wrap">
+  <span class="kicker">What I make</span>
+  <h2>Pick your flavour 🍦</h2>
+  <div class="bento">
+    <div class="b c1 big"><span class="e">🎥</span><h3>UGC Video Ads</h3><p>Talking-to-camera ads made for Meta & TikTok — with a bunch of hooks so you can test what wins.</p></div>
+    <div class="b c2"><span class="e">📦</span><h3>Unboxings</h3><p>That "omg it's here" moment, on camera.</p></div>
+    <div class="b c3"><span class="e">💬</span><h3>Reviews</h3><p>Real opinions that build trust fast.</p></div>
+    <div class="b c4"><span class="e">☀️</span><h3>Lifestyle</h3><p>Your product in my actual day.</p></div>
+    <div class="b c5"><span class="e">📸</span><h3>Photos</h3><p>Cute, clean stills for your feed.</p></div>
+    <div class="b c6 big"><span class="e">🧠</span><h3>Scripts & Strategy</h3><p>Hooks, angles and content plans — the agency brain comes free with every video.</p></div>
+  </div>
+</div></section>
+
+<section id="brands"><div class="wrap">
+  <span class="kicker">Brands I work with</span>
+  <h2>My brand besties 💛</h2>
+  <div class="brands">
+    <div class="brand"><div class="av" style="background:var(--mint)">TD</div><h3>TSK Diet</h3><span class="h">@tsk_diet</span><p>Nutrition coaching content that makes healthy eating feel doable.</p></div>
+    <div class="brand"><div class="av" style="background:var(--butter)">HO</div><h3>Hustlers Only</h3><span class="h">@hustlersonly.official</span><p>Big-energy lifestyle content for people who are always grinding.</p></div>
+    <div class="brand"><div class="av" style="background:var(--pink)">IG</div><h3>IronGear Fitness</h3><span class="h">@irongear_fitness</span><p>Gym gear in action — demos, workouts and honest takes.</p></div>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <span class="kicker">How it works</span>
+  <h2>Easy as 1, 2, 3, 4.</h2>
+  <div class="steps">
+    <div class="st"><div class="num">1</div><h3>You DM me</h3><p>Tell me about your product and what you want.</p></div>
+    <div class="st"><div class="num">2</div><h3>I pitch ideas</h3><p>Hooks and scripts for you to approve.</p></div>
+    <div class="st"><div class="num">3</div><h3>I create</h3><p>Shot, edited, captioned — done.</p></div>
+    <div class="st"><div class="num">4</div><h3>You post</h3><p>Ready-to-use files + one free revision.</p></div>
+  </div>
+</div></section>
+
+<section id="contact"><div class="wrap">
+  <div class="contact">
+    <h2>Wanna work together? 💌</h2>
+    <p>Drop me a message — I usually reply within a day.</p>
+    <div class="cta">
+      <a href="mailto:support@jugaar.media" class="btn">support@jugaar.media</a>
+      <a href="https://wa.me/923285969092" class="btn">WhatsApp me</a>
+    </div>
+    <div class="socials"><a href="#">Instagram</a><a href="#">TikTok</a><a href="https://jugaar.media">jugaar.media</a></div>
+  </div>
+</div></section>
+
+<footer>made with 💛 by UGC by Rimsha · 2026</footer>
+</body>
+</html>
