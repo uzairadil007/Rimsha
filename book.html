@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>book.</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0a0a'/%3E%3Ccircle cx='23' cy='22' r='4' fill='%23d8ff29'/%3E%3C/svg%3E">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+:root{--lime:#d8ff29;--ink:#0a0a0a;--paper:#ffffff;--line:#e8e8e8;--sub:#6b6b6b;--soft:#f6f6f6;}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Helvetica,Arial,sans-serif;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  display:flex;flex-direction:column;min-height:100vh;}
+button,input,select,textarea{font-family:inherit;}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px;}
+header :focus-visible,.book-info :focus-visible{outline-color:var(--lime);}
+
+/* ---------- header (same as the tracker) ---------- */
+header{position:sticky;top:0;z-index:10;background:var(--ink);color:#fff;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top,0px));
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;flex-shrink:0;}
+.brand{display:flex;align-items:center;font-size:19px;}
+.brand .logo{font-style:italic;font-weight:800;letter-spacing:.01em;color:#fff;}
+.brand .logo-dot{color:var(--lime);}
+nav{display:flex;gap:4px;background:#161616;border-radius:10px;padding:4px;flex-wrap:wrap;}
+nav button{background:none;border:0;color:#bbb;padding:8px 14px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;}
+nav button.active{background:var(--lime);color:var(--ink);}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.admin-pill{font-size:11px;background:var(--lime);color:var(--ink);padding:6px 12px;border-radius:20px;font-weight:800;letter-spacing:.03em;}
+button.hdr-btn{background:transparent;border:1px solid #444;color:#eee;border-radius:9px;padding:8px 13px;font-size:12px;cursor:pointer;}
+main{max-width:1040px;margin:0 auto;padding:22px 20px 40px;width:100%;flex:1 0 auto;}
+.site-footer{flex-shrink:0;text-align:center;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));font-size:12.5px;color:var(--sub);border-top:1px solid var(--line);}
+.site-footer a{color:var(--ink);font-weight:700;text-decoration:none;}
+
+/* ---------- shared components ---------- */
+.banner{background:#fff7e0;border:1px solid #f0dca0;color:#6b5400;font-size:12.5px;padding:10px 14px;border-radius:10px;margin-bottom:18px;line-height:1.5;}
+.banner.err{background:#fff0f0;border-color:#f3bcbc;color:#8a1c1c;}
+.banner.ok{background:#f6ffd1;border-color:#d8ff29;color:#2c3300;}
+.banner button{margin-left:8px;}
+.card{border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:18px;background:#fff;}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+.stat{border:1px solid var(--line);border-radius:12px;padding:14px;}
+.stat b{display:block;font-size:24px;margin-bottom:2px;}
+.stat span{font-size:11.5px;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;}
+.stat.hot{background:var(--lime);border-color:var(--lime);}
+.stat.hot span{color:#3a4200;}
+h2{font-size:18px;margin:0 0 4px;}
+h3{font-size:14px;margin:0 0 12px;color:var(--sub);text-transform:uppercase;letter-spacing:.06em;}
+.muted{color:var(--sub);font-size:13px;}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.tag.ok{background:var(--lime);color:var(--ink);}
+.tag.warn{background:#111;color:#fff;}
+.tag.off{background:#f2f2f2;color:#777;}
+.tag.verified{background:#111;color:var(--lime);border:1px solid var(--lime);}
+button.btn{background:var(--ink);color:#fff;border:0;border-radius:10px;padding:12px 20px;font-weight:700;font-size:13.5px;cursor:pointer;}
+button.btn.lime{background:var(--lime);color:var(--ink);}
+button.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);}
+button.btn.sm{padding:7px 11px;font-size:12px;border-radius:8px;}
+button.btn:disabled{opacity:.4;cursor:not-allowed;}
+label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);display:block;margin-bottom:6px;}
+select,input[type=number],input[type=text],input[type=email],input[type=password],input[type=tel],input[type=date],input[type=time],textarea{
+  width:100%;padding:11px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;background:#fff;color:var(--ink);}
+textarea{resize:vertical;min-height:84px;line-height:1.45;}
+.field{margin-bottom:14px;}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+th{color:var(--sub);font-size:11px;text-transform:uppercase;letter-spacing:.05em;}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;}
+.overflow{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.chipbtn{background:#fff;border:1px solid var(--line);border-radius:20px;padding:7px 14px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink);}
+.chipbtn.active{background:var(--ink);color:var(--lime);border-color:var(--ink);}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+a.wa{color:var(--ink);font-weight:700;text-decoration:underline;text-decoration-color:var(--lime);text-decoration-thickness:3px;text-underline-offset:2px;}
+.rowcancel{opacity:.5;}
+pre.rules{background:#101010;color:var(--lime);padding:14px;border-radius:10px;font-size:12px;line-height:1.5;overflow:auto;max-height:280px;white-space:pre;margin:10px 0;}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--lime);
+  padding:12px 18px;border-radius:12px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:all .2s;z-index:50;max-width:90vw;text-align:center;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ---------- client booking page ---------- */
+.book{display:grid;grid-template-columns:310px 1fr;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff;}
+.book-info{background:var(--ink);color:#fff;padding:26px;}
+.book-info .host{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#9a9a9a;}
+.book-info h1{font-size:28px;margin:6px 0 12px;font-style:italic;font-weight:800;line-height:1.1;}
+.book-info h1 i{color:var(--lime);font-style:normal;}
+.chip{display:inline-block;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:20px;background:#1d1d1d;color:#fff;margin:0 6px 6px 0;}
+.chip.lime{background:var(--lime);color:var(--ink);}
+.book-info p.desc{font-size:13.5px;line-height:1.55;color:#cfcfcf;white-space:pre-line;margin:10px 0 0;}
+.avail-box{margin-top:22px;border-top:1px solid #262626;padding-top:16px;font-size:13px;color:#cfcfcf;}
+.avail-box h4{margin:0 0 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9a9a9a;}
+.hrs{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;font-size:13px;}
+.hrs b{color:#fff;}
+.next-btn{margin-top:12px;width:100%;background:var(--lime);color:var(--ink);border:0;border-radius:10px;padding:11px 12px;font-weight:800;font-size:12.5px;cursor:pointer;text-align:left;}
+.next-btn small{display:block;font-weight:600;opacity:.7;margin-bottom:2px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;}
+.week-count{margin-top:10px;font-size:12.5px;color:#cfcfcf;}
+.week-count b{color:var(--lime);}
+.book-main{padding:24px;min-width:0;}
+.picker{display:grid;grid-template-columns:1.25fr 1fr;gap:26px;}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.cal-head b{font-size:15px;}
+.cal-nav{display:flex;gap:6px;}
+.cal-nav button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:16px;font-weight:800;}
+.cal-nav button:disabled{opacity:.3;cursor:not-allowed;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.dow{font-size:10.5px;text-transform:uppercase;color:var(--sub);text-align:center;letter-spacing:.05em;padding:4px 0;}
+.day{aspect-ratio:1/1;border:1px solid var(--line);border-radius:12px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;cursor:pointer;padding:2px;color:var(--ink);min-width:0;}
+.day small{font-size:10px;font-weight:800;margin-top:3px;padding:1px 7px;border-radius:10px;background:var(--lime);color:var(--ink);line-height:1.5;}
+.day.full{cursor:not-allowed;color:#999;background:var(--soft);}
+.day.full small{background:#e9e9e9;color:#888;}
+.day.off{border-color:transparent;color:#c2c2c2;cursor:default;background:transparent;font-weight:400;}
+.day.today:not(.sel){box-shadow:inset 0 0 0 2px var(--lime);}
+.day.sel{background:var(--ink);color:#fff;border-color:var(--ink);}
+.day:not(.off):not(.full):not(.sel):hover{border-color:var(--ink);}
+.slot-head{margin-bottom:12px;}
+.slot-head b{font-size:15px;display:block;}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;max-height:420px;overflow:auto;padding:2px;}
+.slot{padding:12px 6px;border-radius:10px;border:1.5px solid var(--ink);background:#fff;font-weight:700;font-size:13.5px;cursor:pointer;color:var(--ink);}
+.slot:hover{background:var(--lime);}
+.empty{border:1.5px dashed var(--line);border-radius:12px;padding:26px 16px;text-align:center;color:var(--sub);font-size:13.5px;line-height:1.5;}
+.summary{background:var(--soft);border-radius:12px;padding:14px 16px;margin-bottom:18px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;}
+.summary b{display:block;font-size:15px;}
+.summary span{font-size:12.5px;color:var(--sub);}
+.fine{font-size:12px;color:var(--sub);margin-top:10px;line-height:1.5;}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0;}
+.err-msg{color:#c00;font-size:12.5px;margin:0 0 12px;min-height:16px;}
+.done-badge{width:54px;height:54px;border-radius:50%;background:var(--lime);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px;}
+.codebox{font-family:'SFMono-Regular',Consolas,'Courier New',monospace;font-size:22px;letter-spacing:.18em;background:var(--ink);color:var(--lime);border-radius:10px;padding:10px 16px;display:inline-block;}
+.paybox{border:2px solid var(--ink);border-radius:14px;padding:16px;margin:18px 0;}
+.paybox .amt{font-size:26px;font-weight:800;}
+.paybox pre{white-space:pre-wrap;font-family:inherit;font-size:13.5px;line-height:1.55;margin:8px 0 0;}
+a.btn{display:inline-block;text-decoration:none;background:var(--ink);color:#fff;border-radius:10px;padding:12px 20px;font-weight:700;font-size:13.5px;}
+a.btn.lime{background:var(--lime);color:var(--ink);}
+a.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);}
+
+/* ---------- login ---------- */
+.gate-card{max-width:420px;margin:8px auto 18px;}
+.gate{text-align:center;}
+.gate-icon{font-size:36px;margin-bottom:4px;filter:drop-shadow(0 2px 0 var(--lime));}
+.gate form{text-align:left;margin-top:18px;}
+
+/* ---------- sheet ---------- */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:14px;}
+.toolbar .grow{flex:1 1 200px;min-width:160px;}
+.toolbar select{min-width:130px;}
+.sheet-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;max-height:68vh;}
+table.sheet{border-collapse:separate;border-spacing:0;min-width:1500px;font-size:13px;}
+table.sheet th{position:sticky;top:0;background:var(--soft);z-index:2;border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:9px 8px;white-space:nowrap;}
+table.sheet td{padding:0;border-bottom:1px solid var(--line);border-right:1px solid var(--line);background:#fff;}
+table.sheet td.rn{background:var(--soft);text-align:center;color:var(--sub);font-size:11px;width:38px;position:sticky;left:0;z-index:1;}
+table.sheet th.rn{left:0;z-index:3;}
+table.sheet td input,table.sheet td select{border:0;border-radius:0;background:transparent;padding:10px 8px;width:100%;font-size:13px;display:block;}
+table.sheet td input:focus,table.sheet td select:focus{outline:2px solid var(--ink);outline-offset:-2px;background:#fffef0;}
+table.sheet td .cell.st-paid,table.sheet td .cell.st-completed{background:var(--lime);font-weight:700;}
+table.sheet td .cell.st-proof{background:#111;color:#fff;font-weight:700;}
+table.sheet td .cell.st-blocked{background:#e9e9e9;font-weight:700;}
+table.sheet td .cell.st-no-show{background:#ffe3e3;}
+table.sheet td.del{width:44px;text-align:center;}
+.rm{background:none;border:0;color:#b00;cursor:pointer;font-size:15px;padding:8px 10px;}
+
+/* ---------- availability editor ---------- */
+.wk{display:grid;grid-template-columns:110px 70px 1fr 1fr;gap:10px;align-items:center;margin-bottom:8px;}
+.wk .day-name{font-weight:700;font-size:14px;}
+.switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;text-transform:none;letter-spacing:0;color:var(--ink);margin:0;}
+.switch input{width:18px;height:18px;accent-color:var(--ink);}
+.blk{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border-radius:20px;padding:6px 6px 6px 12px;font-size:12.5px;font-weight:700;margin:0 6px 6px 0;}
+.blk button{background:#fff;border:0;border-radius:50%;width:22px;height:22px;cursor:pointer;font-weight:800;}
+
+@media (max-width:860px){
+  .book{grid-template-columns:1fr;}
+  .picker{grid-template-columns:1fr;}
+}
+@media (max-width:640px){
+  main{padding:16px 14px 32px;}
+  .card{padding:16px;border-radius:14px;}
+  .book-main,.book-info{padding:18px;}
+  select,input[type=number],input[type=text],input[type=email],input[type=password],input[type=tel],input[type=date],input[type=time],textarea{font-size:16px;}
+  nav button{padding:10px 12px;}
+  .two{grid-template-columns:1fr;}
+  .wk{grid-template-columns:1fr 1fr;}
+  .wk .day-name{grid-column:1/2;}
+  .wk .sw{grid-column:2/3;}
+}
+@media (max-width:480px){
+  header{flex-direction:column;align-items:stretch;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));}
+  .brand{justify-content:center;}
+  nav{overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start;}
+  nav button{white-space:nowrap;}
+  .hdr-right{justify-content:center;}
+  button.btn{width:100%;}
+  .actions .btn{width:auto;}
+  .cal-grid{gap:4px;}
+  .day{border-radius:10px;font-size:13px;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="logo">book<span class="logo-dot">.</span></span></div>
+  <nav id="tabs"></nav>
+  <div class="hdr-right" id="hdrRight"></div>
+</header>
+<main id="app"></main>
+<footer class="site-footer">
+  book. by <a href="https://www.jugaar.media" target="_blank" rel="noopener">@jugaar.media</a>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* =====================================================================
+   CONFIG — same Firebase project as the VA tracker
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyAZn-MWlArpHYcb7Z88u-wzKdrBxtIsYiE",
+  authDomain: "tracker-9a8cb.firebaseapp.com",
+  projectId: "tracker-9a8cb",
+  storageBucket: "tracker-9a8cb.firebasestorage.app",
+  messagingSenderId: "765187139896",
+  appId: "1:765187139896:web:61ddd4fad7ee85364239cd"
+};
+
+// All times on this page are wall-clock times in this zone (Pakistan has no daylight saving).
+const TZ = 'Asia/Karachi';
+const TZ_OFFSET_MIN = 300;
+const TZ_NAME = 'Pakistan time (PKT)';
+
+const DEFAULTS = {
+  title: 'Consultation',
+  host: '',
+  description: 'A one-on-one consultation. Pick a day and a time that suits you and book it in under a minute.',
+  duration: 30, buffer: 0, horizon: 21, notice: 3,
+  price: 0, currency: 'PKR', whatsapp: '', payInstructions: '',
+  blocked: [],
+  weekly: {
+    0:{on:false,start:'11:00',end:'19:00'},
+    1:{on:true, start:'11:00',end:'19:00'},
+    2:{on:true, start:'11:00',end:'19:00'},
+    3:{on:true, start:'11:00',end:'19:00'},
+    4:{on:true, start:'11:00',end:'19:00'},
+    5:{on:true, start:'11:00',end:'19:00'},
+    6:{on:true, start:'11:00',end:'19:00'},
+  }
+};
+
+const OCC = ['booked','completed','no-show','blocked']; // statuses that hold a slot
+const PAY_OPTS = [['unpaid','Unpaid'],['proof','Proof sent'],['paid','Paid'],['free','Free']];
+const STATUS_OPTS = [['booked','Booked'],['completed','Completed'],['no-show','No-show'],['cancelled','Cancelled'],['blocked','Blocked']];
+const SOURCES = ['Website','Instagram','Facebook','TikTok','WhatsApp','Other'];
+const COLS = [
+  {k:'date',l:'Date',t:'date',w:140},
+  {k:'time',l:'Time',t:'time',w:110},
+  {k:'name',l:'Client',t:'text',w:170},
+  {k:'phone',l:'WhatsApp',t:'text',w:150},
+  {k:'email',l:'Email',t:'text',w:180},
+  {k:'amount',l:'Amount',t:'number',w:100},
+  {k:'payStatus',l:'Payment',t:'select',opts:PAY_OPTS,w:130},
+  {k:'status',l:'Status',t:'select',opts:STATUS_OPTS,w:130},
+  {k:'payRef',l:'Payment ref',t:'text',w:150},
+  {k:'source',l:'Source',t:'select',opts:SOURCES.map(s=>[s,s]),w:120},
+  {k:'notes',l:'Client note',t:'text',w:200},
+  {k:'adminNote',l:'My notes',t:'text',w:200},
+];
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const main = $('#app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const toMin = t => { const m = /^(\d{1,2}):(\d{2})$/.exec(t || ''); return m ? (+m[1])*60 + (+m[2]) : NaN; };
+const fromMin = n => pad(Math.floor(n/60)) + ':' + pad(n%60);
+const fmt12 = t => { const n = toMin(t); if (isNaN(n)) return '—'; const h = Math.floor(n/60), m = n%60; return ((h%12)||12) + ':' + pad(m) + ' ' + (h<12?'AM':'PM'); };
+const parseDate = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(Date.UTC(+m[1], +m[2]-1, +m[3])) : null; };
+const dateStr = d => d.getUTCFullYear() + '-' + pad(d.getUTCMonth()+1) + '-' + pad(d.getUTCDate());
+const addDays = (s,n) => { const d = parseDate(s); d.setUTCDate(d.getUTCDate()+n); return dateStr(d); };
+const weekday = s => parseDate(s).getUTCDay();
+const fmtDay = s => { const d = parseDate(s); return d ? d.toLocaleDateString('en-GB',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long'}) : '—'; };
+const fmtDayShort = s => { const d = parseDate(s); return d ? d.toLocaleDateString('en-GB',{timeZone:'UTC',weekday:'short',day:'numeric',month:'short'}) : '—'; };
+const fmtMonth = ym => { const [y,m] = ym.split('-').map(Number); return new Date(Date.UTC(y,m-1,1)).toLocaleDateString('en-GB',{timeZone:'UTC',month:'long',year:'numeric'}); };
+const fmtMoney = n => Number(n||0).toLocaleString('en-US');
+const plural = (n,w) => n + ' ' + w + (n===1?'':'s');
+const waNumber = n => { let d = String(n||'').replace(/\D/g,''); if (d.startsWith('00')) d = d.slice(2); else if (d.startsWith('0')) d = '92' + d.slice(1); return d; };
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const genCode = () => { let s=''; for (let i=0;i<6;i++) s += CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]; return s; };
+const takenKey = (date,time) => date + '_' + String(time).replace(':','');
+
+function nowTz(){
+  const p = new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
+  const g = t => p.find(x=>x.type===t).value;
+  return { date: g('year')+'-'+g('month')+'-'+g('day'), min: (+g('hour'))*60 + (+g('minute')) };
+}
+function instantUTC(date,time){ // wall-clock in TZ -> real instant
+  const d = parseDate(date), n = toMin(time);
+  return new Date(d.getTime() + n*60000 - TZ_OFFSET_MIN*60000);
+}
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+function mergeSettings(d){
+  d = d || {};
+  const s = Object.assign({}, DEFAULTS, d);
+  s.weekly = {};
+  for (let i=0;i<7;i++) s.weekly[i] = Object.assign({}, DEFAULTS.weekly[i], (d.weekly||{})[i] || {});
+  ['duration','buffer','horizon','notice','price'].forEach(k => s[k] = Number(s[k]) || 0);
+  s.duration = s.duration || 30; s.horizon = s.horizon || 21;
+  s.blocked = Array.isArray(d.blocked) ? d.blocked.slice() : [];
+  return s;
+}
+
+/* =====================================================================
+   STATE
+   ===================================================================== */
+let db = null, auth = null, user = null, authReady = false;
+let settings = mergeSettings({}), settingsExists = false;
+let taken = [];                 // public: which times are held
+let bookingsById = {};          // admin only
+let pubErr = null, bkErr = null, authErr = '';
+let view = (location.hash === '#admin') ? 'login' : 'book';
+let step = 'pick', selDate = null, selTime = null, calMonth = nowTz().date.slice(0,7);
+let formVals = {name:'',phone:'',email:'',notes:'',ref:'',hp:''}, formErr = '', busy = false, lastBooking = null;
+let ovFilter = 'all', sheetQ = '', sheetStatus = 'all', sheetPay = 'all', sheetSort = 'new';
+let pendingRender = false, pendingFocus = null, unsubB = null, loginBusy = false;
+try { lastBooking = JSON.parse(localStorage.getItem('book_last') || 'null'); } catch(e) {}
+const isAdmin = () => !!user;
+
+/* =====================================================================
+   AVAILABILITY LOGIC
+   ===================================================================== */
+function slotTimes(date){
+  const s = settings, w = s.weekly[weekday(date)];
+  if (!w || !w.on || s.blocked.includes(date)) return [];
+  const a = toMin(w.start), b = toMin(w.end);
+  if (isNaN(a) || isNaN(b)) return [];
+  const step = s.duration + s.buffer, out = [];
+  for (let t = a; t + s.duration <= b; t += step) out.push(t);
+  return out;
+}
+function isPast(date,t){
+  const n = nowTz();
+  if (date < n.date) return true;
+  if (date > n.date) return false;
+  return t < n.min + settings.notice*60;
+}
+const overlapsTaken = (date,t,dur) => taken.some(k => k.date === date && t < k.end && k.start < t + dur);
+const capacity = date => slotTimes(date).filter(t => !isPast(date,t)).length;
+const openSlots = date => slotTimes(date).filter(t => !isPast(date,t) && !overlapsTaken(date,t,settings.duration));
+const maxDate = () => addDays(nowTz().date, settings.horizon);
+const inRange = date => date >= nowTz().date && date <= maxDate();
+
+function nextAvailable(){
+  const today = nowTz().date;
+  for (let i=0;i<=settings.horizon;i++){
+    const d = addDays(today,i), o = openSlots(d);
+    if (o.length) return {date:d, t:o[0]};
+  }
+  return null;
+}
+function openThisWeek(){
+  const today = nowTz().date; let n = 0;
+  for (let i=0;i<7;i++) n += openSlots(addDays(today,i)).length;
+  return n;
+}
+function hoursSummary(){
+  const order = [1,2,3,4,5,6,0], nm = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], groups = {};
+  order.forEach(d => { const w = settings.weekly[d]; if (w.on){ const k = w.start + '|' + w.end; (groups[k] = groups[k] || []).push(d); } });
+  const html = Object.entries(groups).map(([k,days]) => {
+    const [a,b] = k.split('|');
+    const idx = days.map(d => order.indexOf(d));
+    const runs = []; let cur = [idx[0]];
+    for (let i=1;i<idx.length;i++){ if (idx[i] === idx[i-1]+1) cur.push(idx[i]); else { runs.push(cur); cur = [idx[i]]; } }
+    runs.push(cur);
+    const label = runs.map(r => r.length >= 3 ? nm[order[r[0]]] + '–' + nm[order[r[r.length-1]]] : r.map(i => nm[order[i]]).join(', ')).join(', ');
+    return '<div class="hrs"><b>' + label + '</b><span>' + fmt12(a) + ' – ' + fmt12(b) + '</span></div>';
+  }).join('');
+  return html || '<div class="hrs"><span>No availability set yet</span></div>';
+}
+
+/* =====================================================================
+   FIREBASE
+   ===================================================================== */
+const T = id => db.collection('bk_taken').doc(id);
+const occKey = b => (OCC.includes(b.status) && parseDate(b.date) && !isNaN(toMin(b.time))) ? takenKey(b.date,b.time) : null;
+
+function initFirebase(){
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    try { auth = firebase.auth(); } catch(e) { auth = null; }
+  } catch(e) { db = null; }
+  if (!db){ pubErr = 'init'; authReady = true; render(); return; }
+
+  db.collection('bk_settings').doc('config').onSnapshot(snap => {
+    settingsExists = snap.exists; settings = mergeSettings(snap.exists ? snap.data() : {});
+    pubErr = null; softRender(['book','ov','avail','settings']);
+  }, err => { pubErr = err.code || 'error'; render(); });
+
+  db.collection('bk_taken').where('date','>=',nowTz().date).onSnapshot(snap => {
+    taken = snap.docs.map(d => Object.assign({id:d.id}, d.data()));
+    pubErr = null; softRender(['book','ov']);
+  }, err => { pubErr = err.code || 'error'; render(); });
+
+  if (auth){
+    auth.onAuthStateChanged(u => {
+      user = u; authReady = true;
+      if (u){ subBookings(); if (view === 'login') view = 'ov'; }
+      else { unsubBookings(); if (view !== 'book' && view !== 'login') view = 'book'; }
+      render();
+    });
+  } else { authReady = true; render(); }
+}
+function subBookings(){
+  if (unsubB) return;
+  unsubB = db.collection('bk_bookings').onSnapshot(snap => {
+    bookingsById = {};
+    snap.docs.forEach(d => { bookingsById[d.id] = Object.assign({code:d.id}, d.data()); });
+    bkErr = null; softRender(['ov','sheet']);
+  }, err => { bkErr = err.code || 'error'; render(); });
+}
+function unsubBookings(){ if (unsubB){ unsubB(); unsubB = null; } bookingsById = {}; bkErr = null; }
+
+async function saveBooking(id, patch){
+  const prev = bookingsById[id]; if (!prev) return;
+  const next = Object.assign({}, prev, patch);
+  const pk = occKey(prev), nk = occKey(next);
+  const bref = db.collection('bk_bookings').doc(id);
+  await db.runTransaction(async tx => {
+    let pSnap = null, nSnap = null;
+    if (pk && pk !== nk) pSnap = await tx.get(T(pk));
+    if (nk) nSnap = await tx.get(T(nk));
+    if (nk && nSnap.exists && nSnap.data().code !== id){
+      const e = new Error('CONFLICT'); e.other = nSnap.data().code; throw e;
+    }
+    if (pk && pk !== nk && pSnap && pSnap.exists && pSnap.data().code === id) tx.delete(T(pk));
+    if (nk){
+      const start = toMin(next.time);
+      tx.set(T(nk), {date:next.date, start, end:start + (Number(next.duration) || settings.duration), code:id});
+    }
+    tx.set(bref, next);
+  });
+  bookingsById[id] = next;
+}
+async function deleteBooking(id){
+  const prev = bookingsById[id]; if (!prev) return;
+  const pk = occKey(prev);
+  await db.runTransaction(async tx => {
+    let s = null;
+    if (pk) s = await tx.get(T(pk));
+    if (s && s.exists && s.data().code === id) tx.delete(T(pk));
+    tx.delete(db.collection('bk_bookings').doc(id));
+  });
+  delete bookingsById[id];
+}
+async function saveSettings(patch){
+  await db.collection('bk_settings').doc('config').set(patch, {merge:true});
+}
+
+/* =====================================================================
+   RENDER — dispatch
+   ===================================================================== */
+const isEditing = () => { const a = document.activeElement; return !!(a && main.contains(a) && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)); };
+function softRender(views){
+  if (views && !views.includes(view)) return;
+  if (isEditing()){ pendingRender = true; return; }
+  render();
+}
+function render(){
+  pendingRender = false;
+  renderHeader();
+  if (view !== 'book' && view !== 'login' && !isAdmin()) view = authReady ? 'login' : view;
+  if (view === 'login') main.innerHTML = loginHtml();
+  else if (view === 'ov') main.innerHTML = overviewHtml();
+  else if (view === 'sheet'){ main.innerHTML = sheetHtml(); renderSheetBody(); }
+  else if (view === 'avail') main.innerHTML = availHtml();
+  else if (view === 'settings') main.innerHTML = settingsHtml();
+  else main.innerHTML = bookHtml();
+  if (pendingFocus){
+    const el = main.querySelector('[data-id="' + pendingFocus.id + '"][data-k="' + pendingFocus.k + '"]');
+    if (el) el.focus();
+    pendingFocus = null;
+  }
+}
+function renderHeader(){
+  const tabs = $('#tabs'), right = $('#hdrRight');
+  if (isAdmin()){
+    const TABS = [['book','Booking page'],['ov','Overview'],['sheet','Sheet'],['avail','Availability'],['settings','Settings']];
+    tabs.innerHTML = TABS.map(t => '<button type="button" data-act="go" data-v="' + t[0] + '" class="' + (view===t[0]?'active':'') + '">' + t[1] + '</button>').join('');
+    tabs.style.display = '';
+    right.innerHTML = '<span class="admin-pill">ADMIN</span><button type="button" class="hdr-btn" data-act="signOut">Sign out</button>';
+  } else {
+    tabs.innerHTML = ''; tabs.style.display = 'none';
+    right.innerHTML = view === 'login'
+      ? '<button type="button" class="hdr-btn" data-act="go" data-v="book">← Back to booking</button>'
+      : '<button type="button" class="hdr-btn" data-act="go" data-v="login">Admin</button>';
+  }
+}
+
+/* =====================================================================
+   CLIENT: booking page
+   ===================================================================== */
+function bookHtml(){
+  let banner = '';
+  if (pubErr) banner = '<div class="banner err">Booking is temporarily unavailable. Please try again in a little while.' + (isAdmin() ? ' <b>(Admin: see Settings → Firebase setup.)</b>' : '') + '</div>';
+  else if (isAdmin()) banner = '<div class="banner ok">You are previewing the client page. Bookings made here are real.</div>';
+  else if (lastBooking && step === 'pick' && lastBooking.date >= nowTz().date)
+    banner = '<div class="banner ok">You have a booking on <b>' + esc(fmtDayShort(lastBooking.date)) + ' at ' + fmt12(lastBooking.time) + '</b>. <button type="button" class="btn sm" data-act="viewLast">View details</button></div>';
+  let body;
+  if (step === 'form') body = formHtml();
+  else if (step === 'done') body = doneHtml();
+  else body = pickerHtml();
+  return banner + '<div class="book">' + infoHtml() + '<div class="book-main">' + body + '</div></div>';
+}
+function infoHtml(){
+  const s = settings, nx = nextAvailable(), wk = openThisWeek();
+  return '<aside class="book-info">' +
+    (s.host ? '<div class="host">' + esc(s.host) + '</div>' : '') +
+    '<h1>' + esc(s.title) + '<i>.</i></h1>' +
+    '<div><span class="chip">⏱ ' + s.duration + ' min</span>' +
+    '<span class="chip lime">' + (s.price > 0 ? esc(s.currency) + ' ' + fmtMoney(s.price) : 'Free') + '</span>' +
+    '<span class="chip">🌍 ' + esc(TZ_NAME) + '</span></div>' +
+    (s.description ? '<p class="desc">' + esc(s.description) + '</p>' : '') +
+    '<div class="avail-box"><h4>When I\'m available</h4>' + hoursSummary() +
+    '<div class="week-count"><b>' + wk + '</b> open ' + (wk===1?'slot':'slots') + ' in the next 7 days</div>' +
+    (nx ? '<button type="button" class="next-btn" data-act="jumpNext"><small>Next available</small>' + esc(fmtDayShort(nx.date)) + ' · ' + fmt12(fromMin(nx.t)) + '</button>'
+        : '<div class="week-count">No open slots right now — check back soon.</div>') +
+    '</div></aside>';
+}
+function pickerHtml(){
+  return '<div class="picker"><div>' + calHtml() + '</div><div>' + slotsHtml() + '</div></div>';
+}
+function calHtml(){
+  const today = nowTz().date, mx = maxDate();
+  const [y,m] = calMonth.split('-').map(Number);
+  const startDow = (new Date(Date.UTC(y,m-1,1)).getUTCDay() + 6) % 7;
+  const dim = new Date(Date.UTC(y,m,0)).getUTCDate();
+  const prevOff = calMonth <= today.slice(0,7), nextOff = calMonth >= mx.slice(0,7);
+  let cells = '';
+  for (let i=0;i<startDow;i++) cells += '<div></div>';
+  for (let d=1; d<=dim; d++){
+    const date = y + '-' + pad(m) + '-' + pad(d);
+    const rng = date >= today && date <= mx;
+    const cap = rng ? capacity(date) : 0, open = rng ? openSlots(date).length : 0;
+    const cls = ['day', open>0 ? '' : (cap>0 ? 'full' : 'off'), date===today?'today':'', date===selDate?'sel':''].filter(Boolean).join(' ');
+    const label = fmtDay(date) + (open>0 ? ', ' + plural(open,'slot') + ' open' : (cap>0 ? ', fully booked' : ', unavailable'));
+    cells += '<button type="button" class="' + cls + '"' + (open>0 ? ' data-act="pickDay" data-date="' + date + '"' : ' disabled') +
+      ' aria-label="' + esc(label) + '"' + (date===selDate?' aria-pressed="true"':'') + '>' + d +
+      (open>0 ? '<small>' + open + '</small>' : (cap>0 ? '<small>Full</small>' : '')) + '</button>';
+  }
+  return '<div class="cal-head"><b>' + esc(fmtMonth(calMonth)) + '</b><div class="cal-nav">' +
+    '<button type="button" data-act="prevMonth" aria-label="Previous month"' + (prevOff?' disabled':'') + '>‹</button>' +
+    '<button type="button" data-act="nextMonth" aria-label="Next month"' + (nextOff?' disabled':'') + '>›</button></div></div>' +
+    '<div class="cal-grid">' + ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x => '<div class="dow">' + x + '</div>').join('') + cells + '</div>' +
+    '<p class="fine">The number on a day is how many slots are still open. Times are in ' + esc(TZ_NAME) + '.</p>';
+}
+function slotsHtml(){
+  if (!selDate) return '<div class="empty"><b>Pick a day</b><br>Choose a date on the calendar to see the times that are open.</div>';
+  const o = inRange(selDate) ? openSlots(selDate) : [];
+  const head = '<div class="slot-head"><b>' + esc(fmtDay(selDate)) + '</b><span class="muted">' + (o.length ? plural(o.length,'slot') + ' left' : 'No slots left') + '</span></div>';
+  if (!o.length) return head + '<div class="empty">Everything on this day is taken. Please pick another date.</div>';
+  return head + '<div class="slots">' + o.map(t => '<button type="button" class="slot" data-act="pickSlot" data-t="' + t + '">' + fmt12(fromMin(t)) + '</button>').join('') + '</div>';
+}
+function formHtml(){
+  const s = settings, t = fromMin(selTime);
+  return '<div class="summary"><div><b>' + esc(fmtDay(selDate)) + ' · ' + fmt12(t) + '</b><span>' + esc(s.title) + ' · ' + s.duration + ' min · ' + esc(TZ_NAME) + '</span></div>' +
+    '<button type="button" class="btn ghost sm" data-act="back">Change time</button></div>' +
+    '<form id="bookForm" novalidate>' +
+    '<div class="field"><label for="f-name">Your name *</label><input id="f-name" data-form="name" type="text" maxlength="80" autocomplete="name" value="' + esc(formVals.name) + '"></div>' +
+    '<div class="two"><div class="field"><label for="f-phone">WhatsApp number *</label><input id="f-phone" data-form="phone" type="tel" maxlength="20" autocomplete="tel" placeholder="03xx xxxxxxx" value="' + esc(formVals.phone) + '"></div>' +
+    '<div class="field"><label for="f-email">Email (optional)</label><input id="f-email" data-form="email" type="email" maxlength="120" autocomplete="email" value="' + esc(formVals.email) + '"></div></div>' +
+    '<div class="field"><label for="f-notes">What would you like to discuss? (optional)</label><textarea id="f-notes" data-form="notes" maxlength="500">' + esc(formVals.notes) + '</textarea></div>' +
+    (s.price > 0 ? '<div class="field"><label for="f-ref">Already paid? Add your transaction ID (optional)</label><input id="f-ref" data-form="ref" type="text" maxlength="60" value="' + esc(formVals.ref) + '"></div>' : '') +
+    '<div class="hp" aria-hidden="true"><label>Leave empty<input data-form="hp" type="text" tabindex="-1" autocomplete="off" value="' + esc(formVals.hp) + '"></label></div>' +
+    '<p class="err-msg" role="alert">' + esc(formErr) + '</p>' +
+    '<button class="btn lime" type="submit"' + (busy||pubErr?' disabled':'') + '>' + (busy ? 'Booking…' : 'Confirm booking') + '</button>' +
+    (s.price > 0 ? '<p class="fine">Your slot is held as soon as you confirm. Payment details are shown on the next screen — ' + esc(s.currency) + ' ' + fmtMoney(s.price) + '.</p>' : '') +
+    '</form>';
+}
+function doneHtml(){
+  const b = lastBooking, s = settings; if (!b) return '';
+  const start = instantUTC(b.date,b.time), end = new Date(start.getTime() + (b.duration||s.duration)*60000);
+  const f = d => d.getUTCFullYear() + pad(d.getUTCMonth()+1) + pad(d.getUTCDate()) + 'T' + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + '00Z';
+  const gcal = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(s.title + (s.host ? ' — ' + s.host : '')) + '&dates=' + f(start) + '/' + f(end) + '&details=' + encodeURIComponent('Booking code: ' + b.code);
+  const localDiff = -new Date().getTimezoneOffset() !== TZ_OFFSET_MIN;
+  const localNote = localDiff ? '<p class="fine">In your local time: ' + esc(start.toLocaleString([], {weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})) + '</p>' : '';
+  const wa = waNumber(s.whatsapp);
+  const waLink = wa ? 'https://wa.me/' + wa + '?text=' + encodeURIComponent('Hi! I booked a consultation (code ' + b.code + ') on ' + fmtDayShort(b.date) + ' at ' + fmt12(b.time) + '. Sending my payment proof.') : '';
+  const pay = b.amount > 0
+    ? '<div class="paybox"><div class="muted">Amount to pay</div><div class="amt">' + esc(s.currency) + ' ' + fmtMoney(b.amount) + '</div>' +
+      (s.payInstructions ? '<pre>' + esc(s.payInstructions) + '</pre>' : '<p class="muted">Payment details will be shared with you on WhatsApp.</p>') +
+      '<p class="fine">' + (b.payStatus === 'proof' ? 'We have your transaction ID and will confirm shortly.' : 'After paying, send the receipt so we can confirm your booking.') + '</p>' +
+      (waLink ? '<a class="btn lime" href="' + esc(waLink) + '" target="_blank" rel="noopener">Send payment proof on WhatsApp</a>' : '') + '</div>'
+    : '';
+  return '<div class="done-badge">✓</div><h2>You\'re booked!</h2>' +
+    '<p class="muted" style="margin:4px 0 14px">Save this code — you\'ll need it if you contact us.</p>' +
+    '<div class="codebox">' + esc(b.code) + '</div>' +
+    '<div class="summary" style="margin-top:18px"><div><b>' + esc(fmtDay(b.date)) + ' · ' + fmt12(b.time) + '</b><span>' + esc(s.title) + ' · ' + (b.duration||s.duration) + ' min · ' + esc(TZ_NAME) + '</span></div></div>' +
+    localNote + pay +
+    '<div class="actions"><a class="btn ghost" href="' + esc(gcal) + '" target="_blank" rel="noopener">Add to Google Calendar</a>' +
+    '<button type="button" class="btn ghost" data-act="bookAnother">Book another time</button></div>';
+}
+
+async function submitBooking(){
+  if (busy) return;
+  const v = formVals, s = settings;
+  if (v.hp){ formErr = 'Something went wrong. Please reload the page and try again.'; return render(); } // honeypot — bots fill it, people never see it
+  const name = v.name.trim(), phone = v.phone.replace(/[\s\-()]/g,''), email = v.email.trim(), notes = v.notes.trim(), ref = v.ref.trim();
+  if (name.length < 2){ formErr = 'Please enter your name.'; return render(); }
+  if (!/^\+?\d{7,15}$/.test(phone)){ formErr = 'Please enter a valid WhatsApp number (digits only, e.g. 03001234567).'; return render(); }
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ formErr = 'That email address doesn\'t look right.'; return render(); }
+  if (!db || pubErr){ formErr = 'Booking is temporarily unavailable. Please try again soon.'; return render(); }
+  if (!selDate || selTime == null || !openSlots(selDate).includes(selTime)){
+    formErr = ''; step = 'pick'; toast('That time was just taken — please pick another.'); return render();
+  }
+  busy = true; formErr = ''; render();
+  const code = genCode(), time = fromMin(selTime);
+  const booking = {code, date:selDate, time, duration:s.duration, name, phone, email, notes,
+    amount:s.price, payStatus: s.price > 0 ? (ref ? 'proof' : 'unpaid') : 'free', payRef:ref,
+    status:'booked', source:'Website', adminNote:'', createdAt:new Date().toISOString()};
+  const tk = {date:selDate, start:selTime, end:selTime + s.duration, code};
+  try {
+    await db.runTransaction(async tx => {
+      const r = T(takenKey(selDate,time)), snap = await tx.get(r);
+      if (snap.exists) throw new Error('SLOT_TAKEN');
+      tx.set(r, tk);
+      tx.set(db.collection('bk_bookings').doc(code), booking);
+    });
+    lastBooking = booking;
+    try { localStorage.setItem('book_last', JSON.stringify(booking)); } catch(e) {}
+    formVals = {name:'',phone:'',email:'',notes:'',ref:'',hp:''};
+    step = 'done';
+  } catch(e){
+    if (e && e.message === 'SLOT_TAKEN'){ step = 'pick'; toast('Sorry, that time was just booked by someone else. Please pick another.'); }
+    else formErr = 'Something went wrong and your booking was not saved. Please try again.';
+  }
+  busy = false; render();
+}
+
+/* =====================================================================
+   ADMIN: login
+   ===================================================================== */
+function loginHtml(){
+  if (!authReady) return '<div class="card gate-card gate"><p class="muted">Checking sign-in…</p></div>';
+  if (isAdmin()) return '<div class="card gate-card gate"><p class="muted">Signed in.</p></div>';
+  return '<div class="card gate-card gate"><div class="gate-icon">🔒</div><h2>Admin sign-in</h2><div class="muted">Only you can see bookings and payments.</div>' +
+    '<form id="loginForm" novalidate>' +
+    '<div class="field"><label for="l-email">Email</label><input id="l-email" type="email" autocomplete="username"></div>' +
+    '<div class="field"><label for="l-pass">Password</label><input id="l-pass" type="password" autocomplete="current-password"></div>' +
+    '<p class="err-msg" role="alert">' + esc(authErr) + '</p>' +
+    '<button class="btn lime" type="submit" style="width:100%"' + (loginBusy?' disabled':'') + '>' + (loginBusy ? 'Signing in…' : 'Sign in') + '</button></form></div>';
+}
+async function doLogin(){
+  if (loginBusy) return;
+  if (!auth){ authErr = 'Sign-in could not load. Check your internet connection and reload.'; return render(); }
+  const email = $('#l-email').value.trim(), pass = $('#l-pass').value;
+  if (!email || !pass){ authErr = 'Enter your email and password.'; return render(); }
+  loginBusy = true; authErr = ''; render();
+  try { await auth.signInWithEmailAndPassword(email, pass); }
+  catch(e){
+    const c = e.code || '';
+    if (c === 'auth/operation-not-allowed' || c === 'auth/configuration-not-found') authErr = 'Sign-in isn\'t switched on yet. In the Firebase console go to Authentication → Sign-in method → Email/Password → Enable.';
+    else if (c === 'auth/too-many-requests') authErr = 'Too many attempts. Wait a few minutes and try again.';
+    else if (c === 'auth/network-request-failed') authErr = 'No connection. Check your internet and try again.';
+    else authErr = 'Wrong email or password.';
+  }
+  loginBusy = false; render();
+}
+
+/* =====================================================================
+   ADMIN: overview
+   ===================================================================== */
+const validWhen = b => parseDate(b.date) && !isNaN(toMin(b.time));
+const bookingsList = () => Object.values(bookingsById);
+function isUpcoming(b){
+  if (b.status !== 'booked' || !validWhen(b)) return false;
+  const n = nowTz();
+  return b.date > n.date || (b.date === n.date && toMin(b.time) + (Number(b.duration)||settings.duration) >= n.min);
+}
+const byWhen = (a,b) => (a.date + ' ' + (a.time||'99:99')).localeCompare(b.date + ' ' + (b.time||'99:99'));
+const payTag = p => p === 'paid' ? '<span class="tag ok">Paid ✓</span>' : p === 'proof' ? '<span class="tag warn">Proof sent</span>' : p === 'free' ? '<span class="tag off">Free</span>' : '<span class="tag off">Unpaid</span>';
+
+function bkBanner(){
+  if (!bkErr) return '';
+  return '<div class="banner err"><b>Can\'t read bookings.</b> ' + (bkErr === 'permission-denied'
+    ? 'Firestore is blocking this account. Paste the rules from <b>Settings → Firebase setup</b> into Firebase console → Firestore Database → Rules, and make sure you signed in with the same email that is in those rules.'
+    : 'Error code: ' + esc(bkErr) + '. Check your connection and reload.') + '</div>';
+}
+function overviewHtml(){
+  const n = nowTz(), all = bookingsList(), up = all.filter(isUpcoming).sort(byWhen);
+  const todayN = all.filter(b => b.date === n.date && ['booked','completed','no-show'].includes(b.status)).length;
+  const unpaid = up.filter(b => b.payStatus === 'unpaid').length, proof = up.filter(b => b.payStatus === 'proof').length;
+  const paidList = all.filter(b => b.payStatus === 'paid' && b.status !== 'cancelled');
+  const revenue = paidList.reduce((s,b) => s + (Number(b.amount)||0), 0);
+  const nx = nextAvailable();
+  const rows = up.filter(b => ovFilter==='all' || (ovFilter==='today' && b.date===n.date) || (ovFilter==='unpaid' && b.payStatus==='unpaid') || (ovFilter==='proof' && b.payStatus==='proof') || (ovFilter==='paid' && b.payStatus==='paid'));
+  const F = [['all','All upcoming'],['today','Today'],['unpaid','Awaiting payment'],['proof','Proof sent'],['paid','Paid']];
+  const setup = !settingsExists ? '<div class="banner">You\'re still on default settings. Open <b>Availability</b> to set your days and hours, and <b>Settings</b> to set your price and payment details — clients see these straight away.</div>' : '';
+  return bkBanner() + setup +
+    '<div class="card"><div class="grid3">' +
+    '<div class="stat"><b>' + up.length + '</b><span>Upcoming booked</span></div>' +
+    '<div class="stat"><b>' + todayN + '</b><span>Today</span></div>' +
+    '<div class="stat' + (unpaid ? ' hot' : '') + '"><b>' + unpaid + '</b><span>Awaiting payment</span></div>' +
+    '<div class="stat' + (proof ? ' hot' : '') + '"><b>' + proof + '</b><span>Proof sent — verify</span></div>' +
+    '<div class="stat"><b>' + paidList.length + '</b><span>Payment confirmed</span></div>' +
+    '<div class="stat"><b>' + esc(settings.currency) + ' ' + fmtMoney(revenue) + '</b><span>Confirmed revenue</span></div>' +
+    '</div><p class="muted" style="margin:14px 0 0"><b>' + openThisWeek() + '</b> open slots in the next 7 days' + (nx ? ' · next open: <b>' + esc(fmtDayShort(nx.date)) + ' ' + fmt12(fromMin(nx.t)) + '</b>' : '') + '</p></div>' +
+    '<div class="card"><h3>Upcoming consultations</h3><div class="chips">' +
+    F.map(f => '<button type="button" class="chipbtn' + (ovFilter===f[0]?' active':'') + '" data-act="ovF" data-f="' + f[0] + '">' + f[1] + '</button>').join('') + '</div>' +
+    (rows.length ? '<div class="overflow"><table><thead><tr><th>When</th><th>Client</th><th>WhatsApp</th><th class="num">Amount</th><th>Payment</th><th></th></tr></thead><tbody>' +
+      rows.map(b => {
+        const wa = waNumber(b.phone);
+        return '<tr><td><b>' + esc(fmtDayShort(b.date)) + '</b><br><span class="muted">' + fmt12(b.time) + '</span></td>' +
+          '<td>' + esc(b.name || '—') + '<br><span class="muted">' + esc(b.code) + (b.payRef ? ' · ref ' + esc(b.payRef) : '') + '</span></td>' +
+          '<td>' + (wa ? '<a class="wa" href="https://wa.me/' + wa + '" target="_blank" rel="noopener">' + esc(b.phone) + '</a>' : '—') + '</td>' +
+          '<td class="num">' + esc(settings.currency) + ' ' + fmtMoney(b.amount) + '</td><td>' + payTag(b.payStatus) + '</td>' +
+          '<td><div class="actions">' + (b.payStatus === 'paid' || b.payStatus === 'free' ? '' : '<button type="button" class="btn lime sm" data-act="markPaid" data-id="' + esc(b.code) + '">Mark paid</button>') +
+          '<button type="button" class="btn ghost sm" data-act="cancelB" data-id="' + esc(b.code) + '">Cancel</button></div></td></tr>';
+      }).join('') + '</tbody></table></div>'
+      : '<div class="empty">' + (up.length ? 'Nothing matches this filter.' : 'No upcoming bookings yet. Share your booking link with clients — new bookings show up here instantly.') + '</div>') +
+    '</div>';
+}
+
+/* =====================================================================
+   ADMIN: sheet
+   ===================================================================== */
+function sheetRows(){
+  const q = sheetQ.trim().toLowerCase();
+  let rows = bookingsList().filter(b =>
+    (sheetStatus === 'all' || b.status === sheetStatus) &&
+    (sheetPay === 'all' || b.payStatus === sheetPay) &&
+    (!q || [b.name,b.phone,b.email,b.code,b.payRef,b.notes,b.adminNote].some(x => String(x||'').toLowerCase().includes(q))));
+  rows.sort(sheetSort === 'date' ? byWhen : (a,b) => String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+  return rows;
+}
+function sheetHtml(){
+  return bkBanner() +
+    '<div class="card"><h3>Sheet — all consultations</h3>' +
+    '<p class="muted" style="margin:-4px 0 14px">Click any cell to edit it — changes save automatically. Website bookings land here too. A row with a date and time holds that slot, so clients can\'t book over it.</p>' +
+    '<div class="toolbar">' +
+    '<div class="grow"><label for="s-q">Search</label><input id="s-q" data-sheet="q" type="text" placeholder="Name, number, code…" value="' + esc(sheetQ) + '"></div>' +
+    '<div><label for="s-st">Status</label><select id="s-st" data-sheet="status"><option value="all">All</option>' + STATUS_OPTS.map(o => '<option value="' + o[0] + '"' + (sheetStatus===o[0]?' selected':'') + '>' + o[1] + '</option>').join('') + '</select></div>' +
+    '<div><label for="s-pay">Payment</label><select id="s-pay" data-sheet="pay"><option value="all">All</option>' + PAY_OPTS.map(o => '<option value="' + o[0] + '"' + (sheetPay===o[0]?' selected':'') + '>' + o[1] + '</option>').join('') + '</select></div>' +
+    '<div><label for="s-sort">Sort</label><select id="s-sort" data-sheet="sort"><option value="new"' + (sheetSort==='new'?' selected':'') + '>Newest added</option><option value="date"' + (sheetSort==='date'?' selected':'') + '>By date</option></select></div>' +
+    '<button type="button" class="btn lime" data-act="addRow">+ Add entry</button>' +
+    '<button type="button" class="btn ghost" data-act="exportCsv">Export CSV</button></div>' +
+    '<div class="sheet-wrap"><table class="sheet"><thead><tr><th class="rn">#</th>' + COLS.map(c => '<th style="min-width:' + c.w + 'px">' + c.l + '</th>').join('') + '<th></th></tr></thead><tbody id="sheetBody"></tbody></table></div>' +
+    '<p class="muted" id="sheetCount" style="margin:10px 0 0"></p></div>';
+}
+function cellHtml(b,c,r,ci){
+  const v = b[c.k] == null ? '' : b[c.k];
+  const base = 'class="cell' + ((c.k==='payStatus'||c.k==='status') ? ' st-' + esc(v) : '') + '" data-id="' + esc(b.code) + '" data-k="' + c.k + '" data-r="' + r + '" data-c="' + ci + '"';
+  if (c.t === 'select'){
+    const opts = c.opts.slice(); if (!opts.some(o => o[0] === v)) opts.push([v, v || '—']);
+    return '<select ' + base + ' aria-label="' + c.l + '">' + opts.map(o => '<option value="' + esc(o[0]) + '"' + (o[0]===v?' selected':'') + '>' + esc(o[1]) + '</option>').join('') + '</select>';
+  }
+  if (c.t === 'number') return '<input type="number" min="0" step="1" ' + base + ' aria-label="' + c.l + '" value="' + esc(v) + '">';
+  return '<input type="' + c.t + '" ' + base + ' aria-label="' + c.l + '" value="' + esc(v) + '"' + (c.t==='text' ? ' maxlength="200"' : '') + '>';
+}
+function renderSheetBody(){
+  const body = $('#sheetBody'); if (!body) return;
+  const rows = sheetRows();
+  body.innerHTML = rows.map((b,r) =>
+    '<tr class="' + (b.status === 'cancelled' ? 'rowcancel' : '') + '"><td class="rn">' + (r+1) + '</td>' +
+    COLS.map((c,ci) => '<td>' + cellHtml(b,c,r,ci) + '</td>').join('') +
+    '<td class="del"><button type="button" class="rm" data-act="delRow" data-id="' + esc(b.code) + '" aria-label="Delete row">✕</button></td></tr>'
+  ).join('') || '<tr><td colspan="' + (COLS.length+2) + '" style="padding:28px;text-align:center;background:#fff" class="muted">No entries yet — click “+ Add entry”, or wait for the first website booking.</td></tr>';
+  const total = bookingsList().length;
+  $('#sheetCount').textContent = rows.length + ' of ' + total + ' ' + (total===1?'entry':'entries');
+}
+async function onCellChange(el){
+  const id = el.dataset.id, k = el.dataset.k; let v = el.value;
+  if (k === 'amount') v = Math.max(0, Number(v) || 0);
+  if (typeof v === 'string') v = v.trim();
+  const patch = {[k]: v};
+  if (k === 'payStatus' && v === 'paid') patch.paidAt = new Date().toISOString();
+  const before = bookingsById[id] ? bookingsById[id][k] : '';
+  try {
+    await saveBooking(id, patch);
+    // update in place — a full re-render here would steal focus from whatever cell the user moved to
+    if (k === 'payStatus' || k === 'status') el.className = 'cell st-' + v;
+    if (k === 'status'){ const tr = el.closest('tr'); if (tr) tr.classList.toggle('rowcancel', v === 'cancelled'); }
+    toast('Saved');
+  } catch(e){
+    el.value = before == null ? '' : before;
+    if (e && e.message === 'CONFLICT'){
+      const o = bookingsById[e.other];
+      toast('That time is already held' + (o && o.name ? ' by ' + o.name : '') + '. Change not saved.');
+    } else toast('Could not save. Check your connection.');
+  }
+}
+async function addRow(){
+  const id = genCode(), n = nowTz();
+  const b = {code:id, date:n.date, time:'', duration:settings.duration, name:'', phone:'', email:'', notes:'',
+    amount:settings.price, payStatus: settings.price > 0 ? 'unpaid' : 'free', payRef:'', status:'booked', source:'WhatsApp', adminNote:'', createdAt:new Date().toISOString()};
+  try {
+    await db.collection('bk_bookings').doc(id).set(b);
+    bookingsById[id] = b;
+    sheetSort = 'new'; sheetQ = ''; sheetStatus = 'all'; sheetPay = 'all';
+    pendingFocus = {id, k:'name'};
+    render();
+  } catch(e){ toast('Could not add a row. Check your connection.'); }
+}
+function exportCsv(){
+  const rows = sheetRows();
+  const q = x => '"' + String(x == null ? '' : x).replace(/"/g,'""') + '"';
+  const head = ['Code'].concat(COLS.map(c => c.l), ['Created']);
+  const lines = [head.map(q).join(',')].concat(rows.map(b => [b.code].concat(COLS.map(c => b[c.k]), [b.createdAt]).map(q).join(',')));
+  const blob = new Blob(['﻿' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'consultations-' + nowTz().date + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* =====================================================================
+   ADMIN: availability + settings
+   ===================================================================== */
+function availHtml(){
+  const s = settings, DAYS = [[1,'Monday'],[2,'Tuesday'],[3,'Wednesday'],[4,'Thursday'],[5,'Friday'],[6,'Saturday'],[0,'Sunday']];
+  const sel = (id, opts, cur) => '<select id="' + id + '">' + opts.map(o => '<option value="' + o[0] + '"' + (Number(o[0])===Number(cur)?' selected':'') + '>' + o[1] + '</option>').join('') + '</select>';
+  return bkBanner() + '<div class="card"><h2>Weekly hours</h2><p class="muted" style="margin:0 0 16px">Clients can book inside these hours. Times are in ' + esc(TZ_NAME) + '.</p>' +
+    DAYS.map(([i,name]) => {
+      const w = s.weekly[i];
+      return '<div class="wk"><div class="day-name">' + name + '</div><div class="sw"><label class="switch"><input type="checkbox" id="av-on-' + i + '"' + (w.on?' checked':'') + '> Open</label></div>' +
+        '<input type="time" id="av-s-' + i + '" value="' + esc(w.start) + '" aria-label="' + name + ' start"><input type="time" id="av-e-' + i + '" value="' + esc(w.end) + '" aria-label="' + name + ' end"></div>';
+    }).join('') +
+    '<div class="two" style="margin-top:18px"><div class="field"><label for="av-dur">Consultation length</label>' + sel('av-dur',[[15,'15 min'],[20,'20 min'],[30,'30 min'],[45,'45 min'],[60,'60 min'],[90,'90 min']],s.duration) + '</div>' +
+    '<div class="field"><label for="av-buf">Break between consultations</label>' + sel('av-buf',[[0,'None'],[5,'5 min'],[10,'10 min'],[15,'15 min'],[30,'30 min']],s.buffer) + '</div>' +
+    '<div class="field"><label for="av-hor">Clients can book up to</label>' + sel('av-hor',[[7,'1 week ahead'],[14,'2 weeks ahead'],[21,'3 weeks ahead'],[30,'1 month ahead'],[60,'2 months ahead']],s.horizon) + '</div>' +
+    '<div class="field"><label for="av-not">Minimum notice</label>' + sel('av-not',[[0,'None'],[1,'1 hour'],[3,'3 hours'],[6,'6 hours'],[12,'12 hours'],[24,'24 hours']],s.notice) + '</div></div>' +
+    '<button type="button" class="btn lime" data-act="saveAvail">Save availability</button></div>' +
+    '<div class="card"><h2>Days off</h2><p class="muted" style="margin:0 0 14px">Block a whole date (holiday, travel). Existing bookings on that date stay — deal with them in the Sheet.</p>' +
+    '<div style="margin-bottom:12px">' + (s.blocked.slice().sort().map(d => '<span class="blk">' + esc(fmtDayShort(d)) + ' <button type="button" data-act="rmBlock" data-date="' + esc(d) + '" aria-label="Remove ' + esc(d) + '">✕</button></span>').join('') || '<span class="muted">No days blocked.</span>') + '</div>' +
+    '<div class="actions"><input type="date" id="av-block" style="width:auto" aria-label="Date to block"><button type="button" class="btn ghost" data-act="addBlock">Block this date</button></div></div>';
+}
+function rulesText(){
+  const email = user && user.email ? user.email : 'YOUR_ADMIN_EMAIL';
+  return "rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n" +
+    "    function isAdmin() { return request.auth != null && request.auth.token.email == '" + email + "'; }\n\n" +
+    "    // existing VA tracker (unchanged)\n    match /entries/{id} { allow read, write: if true; }\n\n" +
+    "    // booking page\n    match /bk_settings/{id} { allow read: if true; allow write: if isAdmin(); }\n" +
+    "    match /bk_taken/{id} { allow read: if true; allow create: if true; allow update, delete: if isAdmin(); }\n" +
+    "    match /bk_bookings/{id} { allow create: if true; allow read, update, delete: if isAdmin(); }\n  }\n}\n";
+}
+function settingsHtml(){
+  const s = settings;
+  return bkBanner() + '<div class="card"><h2>Consultation details</h2><p class="muted" style="margin:0 0 16px">What clients see on the booking page.</p>' +
+    '<div class="two"><div class="field"><label for="st-title">Title</label><input id="st-title" type="text" maxlength="60" value="' + esc(s.title) + '"></div>' +
+    '<div class="field"><label for="st-host">Your name / brand</label><input id="st-host" type="text" maxlength="60" value="' + esc(s.host) + '"></div></div>' +
+    '<div class="field"><label for="st-desc">Description</label><textarea id="st-desc" maxlength="400">' + esc(s.description) + '</textarea></div>' +
+    '<div class="two"><div class="field"><label for="st-price">Price (0 = free)</label><input id="st-price" type="number" min="0" step="1" value="' + esc(s.price) + '"></div>' +
+    '<div class="field"><label for="st-cur">Currency</label><input id="st-cur" type="text" maxlength="5" value="' + esc(s.currency) + '"></div></div>' +
+    '<div class="field"><label for="st-wa">Your WhatsApp number (clients send payment proof here)</label><input id="st-wa" type="tel" maxlength="20" placeholder="03xx xxxxxxx or 923xxxxxxxxx" value="' + esc(s.whatsapp) + '"></div>' +
+    '<div class="field"><label for="st-pay">Payment instructions (shown after booking)</label><textarea id="st-pay" maxlength="600" placeholder="e.g. Bank name, account title, account number, or JazzCash / Easypaisa number">' + esc(s.payInstructions) + '</textarea></div>' +
+    '<button type="button" class="btn lime" data-act="saveGeneral">Save details</button></div>' +
+    '<div class="card"><h2>Firebase setup</h2><p class="muted" style="margin:0 0 6px">One-time. Without these rules anyone could read your clients\' details, so please do this before sharing the link.</p>' +
+    '<ol class="muted" style="line-height:1.7;padding-left:18px;margin:8px 0">' +
+    '<li>Firebase console → <b>Authentication</b> → Get started → <b>Email/Password</b> → Enable.</li>' +
+    '<li>Authentication → <b>Users</b> → Add user (your email + a strong password). This is what you sign in with.</li>' +
+    '<li>Firestore Database → <b>Rules</b> → paste the rules below → Publish.</li></ol>' +
+    (user ? '' : '<p class="muted">Sign in first and your email is filled in automatically.</p>') +
+    '<pre class="rules" id="rulesBox">' + esc(rulesText()) + '</pre>' +
+    '<button type="button" class="btn ghost" data-act="copyRules">Copy rules</button></div>';
+}
+const val = id => { const e = document.getElementById(id); return e ? e.value : ''; };
+async function saveAvail(){
+  const weekly = {};
+  for (let i=0;i<7;i++){
+    const on = document.getElementById('av-on-' + i).checked, a = val('av-s-' + i), b = val('av-e-' + i);
+    if (on && (isNaN(toMin(a)) || isNaN(toMin(b)) || toMin(b) <= toMin(a))){ toast('Check the hours — closing time must be after opening time.'); return; }
+    weekly[i] = {on, start:a || '11:00', end:b || '19:00'};
+  }
+  const patch = {weekly, duration:Number(val('av-dur')), buffer:Number(val('av-buf')), horizon:Number(val('av-hor')), notice:Number(val('av-not'))};
+  try { await saveSettings(patch); toast('Availability saved'); } catch(e){ toast('Could not save. Check your connection.'); }
+}
+async function saveGeneral(){
+  const patch = {title:val('st-title').trim() || 'Consultation', host:val('st-host').trim(), description:val('st-desc').trim(),
+    price:Math.max(0, Number(val('st-price')) || 0), currency:val('st-cur').trim() || 'PKR', whatsapp:val('st-wa').trim(), payInstructions:val('st-pay').trim()};
+  try { await saveSettings(patch); toast('Details saved'); } catch(e){ toast('Could not save. Check your connection.'); }
+}
+async function addBlock(){
+  const d = val('av-block'); if (!parseDate(d)){ toast('Pick a date first.'); return; }
+  if (settings.blocked.includes(d)){ toast('That date is already blocked.'); return; }
+  const live = bookingsList().filter(b => b.date === d && b.status === 'booked').length;
+  try {
+    await saveSettings({blocked: settings.blocked.concat(d)});
+    toast(live ? 'Blocked — ' + plural(live,'booking') + ' on that day still ' + (live===1?'stands':'stand') + '.' : 'Date blocked');
+  } catch(e){ toast('Could not save. Check your connection.'); }
+}
+async function rmBlock(d){
+  try { await saveSettings({blocked: settings.blocked.filter(x => x !== d)}); toast('Date unblocked'); }
+  catch(e){ toast('Could not save. Check your connection.'); }
+}
+
+/* =====================================================================
+   EVENTS (delegated)
+   ===================================================================== */
+const ACT = {
+  go(el){
+    const v = el.dataset.v; view = v; authErr = '';
+    if (v === 'book'){ step = 'pick'; if (location.hash) history.replaceState(null,'',location.pathname + location.search); }
+    render(); window.scrollTo(0,0);
+  },
+  signOut(){ if (auth) auth.signOut(); },
+  prevMonth(){ const [y,m] = calMonth.split('-').map(Number); const d = new Date(Date.UTC(y,m-2,1)); calMonth = d.getUTCFullYear() + '-' + pad(d.getUTCMonth()+1); render(); },
+  nextMonth(){ const [y,m] = calMonth.split('-').map(Number); const d = new Date(Date.UTC(y,m,1)); calMonth = d.getUTCFullYear() + '-' + pad(d.getUTCMonth()+1); render(); },
+  pickDay(el){ selDate = el.dataset.date; selTime = null; render(); },
+  pickSlot(el){ selTime = Number(el.dataset.t); step = 'form'; formErr = ''; render(); window.scrollTo(0,0); },
+  back(){ step = 'pick'; formErr = ''; render(); },
+  jumpNext(){ const nx = nextAvailable(); if (!nx) return; selDate = nx.date; selTime = null; calMonth = nx.date.slice(0,7); step = 'pick'; render(); },
+  bookAnother(){ step = 'pick'; selDate = null; selTime = null; render(); },
+  viewLast(){ step = 'done'; render(); },
+  ovF(el){ ovFilter = el.dataset.f; render(); },
+  async markPaid(el){
+    try { await saveBooking(el.dataset.id, {payStatus:'paid', paidAt:new Date().toISOString()}); toast('Payment confirmed'); }
+    catch(e){ toast('Could not save. Check your connection.'); }
+    render();
+  },
+  async cancelB(el){
+    const b = bookingsById[el.dataset.id]; if (!b) return;
+    if (!confirm('Cancel ' + (b.name || 'this booking') + ' on ' + fmtDayShort(b.date) + ' at ' + fmt12(b.time) + '? The slot opens up again.')) return;
+    try { await saveBooking(b.code, {status:'cancelled'}); toast('Cancelled — slot is open again'); }
+    catch(e){ toast('Could not save. Check your connection.'); }
+    render();
+  },
+  async delRow(el){
+    const b = bookingsById[el.dataset.id]; if (!b) return;
+    if (!confirm('Permanently delete ' + (b.name || 'this empty entry') + (validWhen(b) ? ' (' + fmtDayShort(b.date) + ' ' + fmt12(b.time) + ')' : '') + '? This cannot be undone.')) return;
+    try { await deleteBooking(b.code); toast('Deleted'); } catch(e){ toast('Could not delete. Check your connection.'); }
+    render();
+  },
+  addRow, exportCsv, saveAvail, saveGeneral, addBlock,
+  rmBlock(el){ rmBlock(el.dataset.date); },
+  async copyRules(){
+    const t = rulesText();
+    try { await navigator.clipboard.writeText(t); toast('Rules copied'); }
+    catch(e){ const r = document.createRange(); r.selectNodeContents($('#rulesBox')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); toast('Press Ctrl/Cmd + C to copy'); }
+  },
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+  const f = ACT[el.dataset.act]; if (f) f(el, e);
+});
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  if (e.target.id === 'bookForm') submitBooking();
+  else if (e.target.id === 'loginForm') doLogin();
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.form){ formVals[t.dataset.form] = t.value; }
+  else if (t.dataset && t.dataset.sheet === 'q'){ sheetQ = t.value; renderSheetBody(); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.classList && t.classList.contains('cell')) onCellChange(t);
+  else if (t.dataset && t.dataset.sheet){
+    if (t.dataset.sheet === 'status') sheetStatus = t.value;
+    else if (t.dataset.sheet === 'pay') sheetPay = t.value;
+    else if (t.dataset.sheet === 'sort') sheetSort = t.value;
+    renderSheetBody();
+  }
+});
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (e.key === 'Enter' && t.classList && t.classList.contains('cell') && t.tagName === 'INPUT'){
+    e.preventDefault(); t.blur();
+    const nx = main.querySelector('[data-r="' + (Number(t.dataset.r)+1) + '"][data-c="' + t.dataset.c + '"]');
+    if (nx) nx.focus();
+  }
+});
+document.addEventListener('focusout', () => {
+  setTimeout(() => { if (pendingRender && !isEditing()) render(); }, 0);
+});
+window.addEventListener('hashchange', () => {
+  if (location.hash === '#admin'){ view = isAdmin() ? 'ov' : 'login'; render(); }
+});
+
+/* =====================================================================
+   GO
+   ===================================================================== */
+render();
+initFirebase();
+// roll the page forward if it's left open past midnight / as notice windows pass
+setInterval(() => { if (view === 'book' && step !== 'form' && !isEditing()) render(); }, 60000);
+})();
+</script>
+</body>
+</html>
