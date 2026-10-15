@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Community Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fff4ec;--ink:#2a1a14;--coral:#ff6b4a;--pink:#ffc2d1;--butter:#ffe27a;--mint:#bdf0d6;--lilac:#d9c8ff;--mute:#7a6259}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:"DM Sans",sans-serif;line-height:1.5;min-height:100vh}
+  a{color:inherit}
+  h1,h2,h3{font-family:"Bricolage Grotesque",sans-serif;letter-spacing:-.03em;line-height:1.05}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+  nav{padding:20px 0}
+  nav .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .logo{font-family:"Bricolage Grotesque";font-weight:800;font-size:22px;text-decoration:none}
+  .btn{display:inline-flex;align-items:center;gap:6px;background:var(--coral);color:#fff;font:700 15px "DM Sans",sans-serif;padding:11px 20px;border-radius:999px;border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);cursor:pointer;transition:transform .12s,box-shadow .12s;white-space:nowrap}
+  .btn:hover{transform:translate(1px,1px);box-shadow:2px 2px 0 var(--ink)}
+  .btn:disabled{opacity:.55;cursor:default;transform:none}
+  .btn.w{background:#fff;color:var(--ink)}
+  .btn.sm{padding:6px 12px;font-size:13px;box-shadow:2px 2px 0 var(--ink)}
+  .banner{background:var(--butter);border:2px solid var(--ink);border-radius:16px;padding:12px 16px;font-size:14px;margin-bottom:22px}
+  .card{background:#fff;border:2px solid var(--ink);border-radius:26px;padding:28px;box-shadow:6px 6px 0 var(--ink)}
+  .kicker{display:inline-block;background:var(--ink);color:var(--bg);padding:5px 12px;border-radius:999px;font-size:12px;font-weight:700;margin-bottom:14px}
+  input,textarea,select{font:inherit;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:14px;padding:10px 12px;width:100%}
+  textarea{resize:vertical;min-height:44px}
+  input:focus,textarea:focus,select:focus{outline:3px solid var(--butter);outline-offset:1px}
+  label{font-weight:700;font-size:14px;display:block;margin-bottom:6px}
+  .muted{color:var(--mute)}
+  .err{color:#c0301a;font-weight:700;font-size:14px;margin-top:10px;min-height:1em}
+  .center{min-height:70vh;display:grid;place-items:center;padding:20px 0 60px}
+  .narrow{width:100%;max-width:520px}
+  /* member view */
+  .hello{font-size:clamp(34px,7vw,52px);font-weight:800;margin-bottom:22px}
+  .task{background:var(--lilac);border:2px solid var(--ink);border-radius:18px;padding:18px;font-size:18px;white-space:pre-wrap;word-wrap:break-word;margin-bottom:22px}
+  .task.empty{background:#f4ece6;color:var(--mute);font-style:italic}
+  .saved{font-size:14px;color:var(--mute);margin-top:12px;min-height:1.4em}
+  /* status pills */
+  .pill{display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:3px 12px;font-weight:700;font-size:13px;white-space:nowrap}
+  .s-Done{background:var(--mint)}
+  .s-In-progress{background:var(--butter)}
+  .s-Not-started{background:#fff}
+  select.s-Done{background:var(--mint)}
+  select.s-In-progress{background:var(--butter)}
+  /* admin */
+  .head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px;margin:10px 0 24px}
+  .head h1{font-size:clamp(36px,6vw,58px);font-weight:800}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+  .stat{border:2px solid var(--ink);border-radius:18px;padding:14px 16px}
+  .stat b{font-family:"Bricolage Grotesque";font-size:32px;display:block;line-height:1}
+  .stat span{font-size:13px;font-weight:700}
+  .bar{height:16px;border:2px solid var(--ink);border-radius:999px;background:#fff;overflow:hidden;margin-bottom:26px}
+  .bar i{display:block;height:100%;background:var(--coral);transition:width .4s}
+  .tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+  .tools input{flex:1;min-width:200px}
+  .filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  .filters button{font:700 13px "DM Sans";border:2px solid var(--ink);background:#fff;border-radius:999px;padding:5px 12px;cursor:pointer}
+  .filters button.on{background:var(--ink);color:var(--bg)}
+  .rows{display:grid;gap:12px}
+  .row{background:#fff;border:2px solid var(--ink);border-radius:20px;padding:14px;display:grid;grid-template-columns:34px 180px 1fr 150px;gap:12px;align-items:start}
+  .row .num{width:34px;height:34px;border-radius:50%;background:var(--pink);border:2px solid var(--ink);display:grid;place-items:center;font-weight:800;font-size:14px}
+  .row .meta{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+  .row .when{font-size:12px;color:var(--mute)}
+  .row .acts{display:flex;gap:6px;flex-wrap:wrap;grid-column:3/5}
+  .row.dirty{border-style:dashed}
+  .savebar{position:sticky;bottom:14px;display:flex;justify-content:flex-end;margin-top:20px;pointer-events:none}
+  .savebar .btn{pointer-events:auto}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-weight:700;font-size:14px;transition:transform .25s;z-index:10}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .hidden{display:none!important}
+  footer{padding:30px 0;text-align:center;color:var(--mute);font-size:13px}
+  @media(max-width:760px){
+    .row{grid-template-columns:34px 1fr}
+    .row>*:nth-child(n+3){grid-column:1/3}
+    .row .acts{grid-column:1/3}
+    .stats{grid-template-columns:repeat(3,1fr)}
+    .stat b{font-size:26px}
+  }
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a href="../" class="logo">ugc by rimsha ✿</a>
+  <button id="logout" class="btn w sm hidden">Log out</button>
+</div></nav>
+
+<main class="wrap">
+  <div id="demo" class="banner hidden">
+    <b>Demo mode.</b> Not connected to a Google Sheet yet, so everything is saved only in this browser.
+    Admin key for the demo is <code>demo</code>. Follow the steps in <code>tracker/apps-script.gs</code> to go live.
+  </div>
+  <div id="view"><div class="center"><p class="muted">Loading…</p></div></div>
+</main>
+
+<footer>Community Tracker · ugc by rimsha</footer>
+<div id="toast" class="toast"></div>
+
+<script>
+// Paste your Google Apps Script web app URL here (ends in /exec). Leave empty for demo mode.
+const API_URL = '';
+
+const STATUSES = ['Not started', 'In progress', 'Done'];
+const DEMO = !API_URL;
+const view = document.getElementById('view');
+const params = new URLSearchParams(location.search);
+
+// ---------- helpers ----------
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cls = s => 's-' + String(s).replace(/\s+/g, '-');
+function ago(iso) {
+  if (!iso) return 'no update yet';
+  const s = (Date.now() - new Date(iso)) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + ' min ago';
+  if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+  return new Date(iso).toLocaleDateString(undefined, {day: 'numeric', month: 'short'});
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+const store = {
+  get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { sessionStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { sessionStorage.removeItem(k); } catch (e) {} }
+};
+
+// ---------- API ----------
+async function api(action, data = {}) {
+  if (DEMO) return demoApi(action, data);
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: JSON.stringify({action, ...data})
+  });
+  const out = await res.json();
+  if (out.error) throw new Error(out.error);
+  return out;
+}
+
+// Demo backend: mirrors apps-script.gs, stored in this browser only.
+let demoMem = null;
+function demoToken() { return Array.from(crypto.getRandomValues(new Uint8Array(20)), b => b.toString(16).padStart(2, '0')).join(''); }
+function demoLoad() {
+  try { demoMem = JSON.parse(localStorage.getItem('tracker-demo')) || demoMem; } catch (e) {}
+  if (!demoMem) {
+    demoMem = {members: Array.from({length: 20}, (_, i) => ({id: i + 1, name: 'Member ' + (i + 1), task: '', status: STATUSES[0], updated: '', token: demoToken()}))};
+    demoSave();
+  }
+  return demoMem;
+}
+function demoSave() { try { localStorage.setItem('tracker-demo', JSON.stringify(demoMem)); } catch (e) {} }
+async function demoApi(action, d) {
+  const s = demoLoad();
+  const pub = m => ({id: m.id, name: m.name, task: m.task, status: m.status, updated: m.updated});
+  if (action === 'me' || action === 'setStatus') {
+    const m = s.members.find(x => x.token === d.token);
+    if (!m) throw new Error('This link is not valid. Ask for a new one.');
+    if (action === 'setStatus') {
+      if (!STATUSES.includes(d.status)) throw new Error('Unknown status.');
+      m.status = d.status; m.updated = new Date().toISOString(); demoSave();
+    }
+    return {member: pub(m)};
+  }
+  if (d.key !== 'demo') throw new Error('Wrong admin key.');
+  if (action === 'saveAdmin') {
+    for (const u of d.members) {
+      const m = s.members.find(x => x.id === u.id);
+      if (!m) continue;
+      if (u.task !== m.task) { m.status = STATUSES[0]; m.updated = ''; }
+      m.name = u.name; m.task = u.task;
+    }
+    demoSave();
+  } else if (action === 'resetToken') {
+    s.members.find(x => x.id === d.id).token = demoToken(); demoSave();
+  }
+  return {members: s.members.map(m => ({...pub(m), token: m.token}))};
+}
+
+// ---------- member view ----------
+async function memberView(token) {
+  let m;
+  try { m = (await api('me', {token})).member; }
+  catch (e) { return view.innerHTML = `<div class="center"><div class="card narrow"><h2>Hmm 🤔</h2><p class="err">${esc(e.message)}</p></div></div>`; }
+
+  view.innerHTML = `<div class="center"><div class="card narrow">
+    <span class="kicker">Your task</span>
+    <h1 class="hello">Hey ${esc(m.name)} 👋</h1>
+    <div class="task ${m.task ? '' : 'empty'}">${m.task ? esc(m.task) : 'No task yet. Check back soon!'}</div>
+    <label for="st">Have you done it?</label>
+    <select id="st" ${m.task ? '' : 'disabled'}>${STATUSES.map(s => `<option ${s === m.status ? 'selected' : ''}>${s}</option>`).join('')}</select>
+    <p class="saved" id="saved">${m.updated ? 'Last updated ' + ago(m.updated) : ''}</p>
+    <p class="err" id="err"></p>
+  </div></div>`;
+
+  const sel = document.getElementById('st');
+  sel.className = cls(m.status);
+  sel.onchange = async () => {
+    sel.disabled = true; document.getElementById('err').textContent = '';
+    document.getElementById('saved').textContent = 'Saving…';
+    try {
+      m = (await api('setStatus', {token, status: sel.value})).member;
+      sel.className = cls(m.status);
+      document.getElementById('saved').textContent = 'Saved ✓ ' + (m.status === 'Done' ? 'Nice work! 🎉' : '');
+    } catch (e) {
+      sel.value = m.status;
+      document.getElementById('saved').textContent = '';
+      document.getElementById('err').textContent = e.message;
+    }
+    sel.disabled = false;
+  };
+}
+
+// ---------- admin ----------
+function loginView(msg = '') {
+  view.innerHTML = `<div class="center"><form class="card narrow" id="login">
+    <span class="kicker">Admin</span>
+    <h1 class="hello">Community Tracker</h1>
+    <label for="key">Admin key</label>
+    <input id="key" type="password" autocomplete="current-password" required>
+    <p class="err">${esc(msg)}</p>
+    <button class="btn" style="margin-top:6px">Open dashboard</button>
+  </form></div>`;
+  document.getElementById('key').focus();
+  document.getElementById('login').onsubmit = e => {
+    e.preventDefault();
+    store.set('tracker-key', document.getElementById('key').value.trim());
+    adminView();
+  };
+}
+
+let members = [], dirty = new Set(), filter = 'All';
+
+async function adminView() {
+  const key = store.get('tracker-key');
+  if (!key) return loginView();
+  try { members = (await api('admin', {key})).members; }
+  catch (e) { store.del('tracker-key'); return loginView(e.message); }
+  dirty.clear();
+  document.getElementById('logout').classList.remove('hidden');
+
+  view.innerHTML = `
+    <div class="head">
+      <div><span class="kicker">Admin dashboard</span><h1>Community Tracker</h1></div>
+      <button class="btn w sm" id="refresh">↻ Refresh</button>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="tools">
+      <input id="all" placeholder="Type one task to give everyone…">
+      <button class="btn w sm" id="applyAll">Give to all 20</button>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="rows" id="rows"></div>
+    <div class="savebar"><button class="btn" id="save" disabled>All saved</button></div>`;
+
+  document.getElementById('refresh').onclick = refresh;
+  document.getElementById('save').onclick = save;
+  document.getElementById('applyAll').onclick = () => {
+    const t = document.getElementById('all').value.trim();
+    if (!t) return;
+    members.forEach(m => { if (m.task !== t) { m.task = t; dirty.add(m.id); } });
+    renderRows(); updateSave();
+  };
+  renderStats(); renderRows();
+}
+
+function renderStats() {
+  const n = s => members.filter(m => m.status === s).length;
+  const done = n('Done'), prog = n('In progress'), not = n('Not started');
+  document.getElementById('stats').innerHTML = `
+    <div class="stat" style="background:var(--mint)"><b>${done}</b><span>Done</span></div>
+    <div class="stat" style="background:var(--butter)"><b>${prog}</b><span>In progress</span></div>
+    <div class="stat" style="background:#fff"><b>${not}</b><span>Not started</span></div>`;
+  document.getElementById('bar').style.width = (members.length ? done / members.length * 100 : 0) + '%';
+  document.getElementById('filters').innerHTML = ['All', ...STATUSES].map(f =>
+    `<button class="${f === filter ? 'on' : ''}" data-f="${f}">${f}</button>`).join('');
+  document.querySelectorAll('#filters button').forEach(b => b.onclick = () => { filter = b.dataset.f; renderStats(); renderRows(); });
+}
+
+function renderRows() {
+  const list = members.filter(m => filter === 'All' || m.status === filter);
+  document.getElementById('rows').innerHTML = list.map(m => `
+    <div class="row ${dirty.has(m.id) ? 'dirty' : ''}" data-id="${m.id}">
+      <div class="num">${m.id}</div>
+      <input data-k="name" value="${esc(m.name)}" aria-label="Name of member ${m.id}">
+      <textarea data-k="task" rows="1" placeholder="Task for ${esc(m.name)}…" aria-label="Task for member ${m.id}">${esc(m.task)}</textarea>
+      <div class="meta"><span class="pill ${cls(m.status)}">${esc(m.status)}</span><span class="when">${ago(m.updated)}</span></div>
+      <div class="acts">
+        <button class="btn w sm" data-a="copy">🔗 Copy their link</button>
+        <button class="btn w sm" data-a="reset" title="Old link stops working">New link</button>
+      </div>
+    </div>`).join('') || '<p class="muted">Nobody here.</p>';
+
+  document.querySelectorAll('.row').forEach(row => {
+    const m = members.find(x => x.id === Number(row.dataset.id));
+    row.querySelectorAll('[data-k]').forEach(el => el.oninput = () => {
+      m[el.dataset.k] = el.value; dirty.add(m.id); row.classList.add('dirty'); updateSave();
+    });
+    row.querySelector('[data-a=copy]').onclick = () => copyLink(m);
+    row.querySelector('[data-a=reset]').onclick = () => resetLink(m);
+  });
+}
+
+function updateSave() {
+  const b = document.getElementById('save');
+  b.disabled = !dirty.size;
+  b.textContent = dirty.size ? `Save changes (${dirty.size})` : 'All saved';
+}
+
+function linkFor(m) { return location.origin + location.pathname + '?t=' + m.token; }
+
+async function copyLink(m) {
+  const url = linkFor(m);
+  try { await navigator.clipboard.writeText(url); toast(`Copied ${m.name}'s link`); }
+  catch (e) { prompt(`Copy ${m.name}'s link:`, url); }
+}
+
+async function resetLink(m) {
+  if (!confirm(`Make a new link for ${m.name}? Their old link will stop working.`)) return;
+  try {
+    const fresh = (await api('resetToken', {key: store.get('tracker-key'), id: m.id})).members;
+    members.find(x => x.id === m.id).token = fresh.find(x => x.id === m.id).token;
+    copyLink(m);
+  } catch (e) { toast(e.message); }
+}
+
+async function save() {
+  const b = document.getElementById('save');
+  b.disabled = true; b.textContent = 'Saving…';
+  try {
+    const changed = members.filter(m => dirty.has(m.id)).map(({id, name, task}) => ({id, name: name.trim(), task: task.trim()}));
+    members = (await api('saveAdmin', {key: store.get('tracker-key'), members: changed})).members;
+    dirty.clear(); renderStats(); renderRows(); toast('Saved ✓');
+  } catch (e) { toast(e.message); }
+  updateSave();
+}
+
+async function refresh() {
+  try {
+    const fresh = (await api('admin', {key: store.get('tracker-key')})).members;
+    // Keep unsaved edits; take everything else from the server.
+    members = fresh.map(f => {
+      const old = members.find(m => m.id === f.id);
+      return dirty.has(f.id) ? {...f, name: old.name, task: old.task} : f;
+    });
+    renderStats(); renderRows();
+  } catch (e) { toast(e.message); }
+}
+
+document.getElementById('logout').onclick = () => { store.del('tracker-key'); location.href = location.pathname; };
+
+// ---------- start ----------
+if (DEMO) document.getElementById('demo').classList.remove('hidden');
+if (params.get('t')) memberView(params.get('t'));
+else {
+  adminView();
+  setInterval(() => {
+    const typing = document.activeElement && document.activeElement.closest('.row, .tools');
+    if (store.get('tracker-key') && document.getElementById('rows') && document.visibilityState === 'visible' && !typing) refresh();
+  }, 30000);
+}
+</script>
+</body>
+</html>
